@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ categoria.nome }} — {{ mes_nome }}{% endblock %}
+{% block content %}
+
+<p style="margin-bottom: 18px;">
+  <a href="/dashboard/{{ ano }}/{{ mes }}" style="color: var(--ink-soft); text-decoration: none; font-size: 13px;">‹ Voltar para {{ mes_nome }}</a>
+</p>
+
+<div class="cards" style="grid-template-columns: 1fr;">
+  <div class="card despesas">
+    <div class="label">{{ categoria.nome }} — {{ mes_nome }}</div>
+    <div class="value">R$ {{ "%.2f"|format(total) }}</div>
+  </div>
+</div>
+
+<section class="block">
+  <h2>Lançamentos</h2>
+  {% if transacoes %}
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th><th>Descrição</th><th>Forma</th><th style="text-align:right">Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transacoes %}
+      <tr>
+        <td>{{ t.data.strftime("%d/%m/%Y") }}</td>
+        <td>{{ t.descricao or "—" }}</td>
+        <td>{{ t.forma_pagamento or "—" }}</td>
+        <td class="num despesa">R$ {{ "%.2f"|format(t.valor) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Nenhum lançamento nessa categoria neste mês.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

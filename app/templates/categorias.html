@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Categorias{% endblock %}
+{% block content %}
+
+<section class="block">
+  <h2>Nova categoria</h2>
+  <form class="lancar" method="post" action="/ui/categorias" style="grid-template-columns: 2fr 1fr auto;">
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" placeholder="Ex: Mercado" required>
+    </div>
+    <div class="field">
+      <label for="tipo">Tipo</label>
+      <select id="tipo" name="tipo" required>
+        <option value="despesa">Despesa</option>
+        <option value="ganho">Ganho</option>
+      </select>
+    </div>
+    <button type="submit">Adicionar</button>
+  </form>
+</section>
+
+<section class="block">
+  <h2>Despesas</h2>
+  {% if categorias_despesa %}
+  <table>
+    <tbody>
+      {% for c in categorias_despesa %}
+      <tr>
+        <td class="categoria-tipo-despesa">{{ c.nome }}</td>
+        <td style="text-align:right">
+          <form method="post" action="/ui/categorias/{{ c.id }}/excluir" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Nenhuma categoria de despesa cadastrada.</p>
+  {% endif %}
+</section>
+
+<section class="block">
+  <h2>Ganhos</h2>
+  {% if categorias_ganho %}
+  <table>
+    <tbody>
+      {% for c in categorias_ganho %}
+      <tr>
+        <td class="categoria-tipo-ganho">{{ c.nome }}</td>
+        <td style="text-align:right">
+          <form method="post" action="/ui/categorias/{{ c.id }}/excluir" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Nenhuma categoria de ganho cadastrada.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

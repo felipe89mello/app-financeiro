@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Balanço Anual — {{ ano }}{% endblock %}
+{% block content %}
+
+<div class="month-bar">
+  <a href="/balanco/{{ ano - 1 }}">‹</a>
+  <div class="current">{{ ano }}</div>
+  <a href="/balanco/{{ ano + 1 }}">›</a>
+</div>
+
+<div class="cards">
+  <div class="card despesas">
+    <div class="label">Total Despesas do Ano</div>
+    <div class="value">R$ {{ "%.2f"|format(total_despesas_ano) }}</div>
+  </div>
+  <div class="card ganhos">
+    <div class="label">Total Ganhos do Ano</div>
+    <div class="value">R$ {{ "%.2f"|format(total_ganhos_ano) }}</div>
+  </div>
+  <div class="card saldo {{ 'positivo' if saldo_total >= 0 else 'negativo' }}">
+    <div class="label">Saldo do Ano</div>
+    <div class="value">R$ {{ "%.2f"|format(saldo_total) }}</div>
+  </div>
+</div>
+
+<section class="block">
+  <h2>Balanço {{ ano }}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Mês</th>
+        <th style="text-align:right">Despesas</th>
+        <th style="text-align:right">Ganhos</th>
+        <th style="text-align:right">Saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in meses %}
+      <tr>
+        <td>{{ m.nome_mes }}</td>
+        <td class="num despesa">R$ {{ "%.2f"|format(m.total_despesas) }}</td>
+        <td class="num ganho">R$ {{ "%.2f"|format(m.total_ganhos) }}</td>
+        <td class="num" style="color: {{ 'var(--forest)' if m.saldo >= 0 else 'var(--brick)' }}; font-weight:600;">
+          R$ {{ "%.2f"|format(m.saldo) }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="font-weight:600; border-top: 2px solid var(--ink); padding-top:10px;">BALANÇO ANUAL FINAL</td>
+        <td style="border-top: 2px solid var(--ink);"></td>
+        <td style="border-top: 2px solid var(--ink);"></td>
+        <td class="num" style="border-top: 2px solid var(--ink); padding-top:10px; font-weight:700; color: {{ 'var(--forest)' if saldo_total >= 0 else 'var(--brick)' }};">
+          R$ {{ "%.2f"|format(saldo_total) }}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</section>
+
+{% endblock %}

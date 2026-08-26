@@ -1,0 +1,272 @@
+:root {
+  --paper: #eef1e8;
+  --card: #fbfcf8;
+  --ink: #1d2a20;
+  --ink-soft: #55614f;
+  --rule: #c7d0bd;
+  --forest: #1f4d3a;
+  --forest-soft: #e3ece5;
+  --brick: #8c3b2e;
+  --brick-soft: #f3e5e1;
+  --gold: #a9781f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 27px,
+    var(--rule) 28px
+  );
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+header.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  border-bottom: 3px double var(--ink);
+  padding-bottom: 10px;
+}
+
+header.top h1 {
+  font-family: "IBM Plex Serif", serif;
+  font-weight: 600;
+  font-size: 26px;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+header.top nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-left: 18px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid transparent;
+}
+
+header.top nav a:hover,
+header.top nav a.active {
+  color: var(--forest);
+  border-bottom-color: var(--forest);
+}
+
+.month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 24px;
+  font-family: "IBM Plex Serif", serif;
+}
+
+.month-bar a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 20px;
+  padding: 2px 10px;
+  border: 1px solid var(--rule);
+  background: var(--card);
+}
+
+.month-bar a:hover {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
+.month-bar .current {
+  font-size: 19px;
+  font-weight: 600;
+  min-width: 220px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 16px 18px;
+}
+
+.card .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.card .value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.card.despesas .value { color: var(--brick); }
+.card.ganhos .value { color: var(--forest); }
+.card.saldo .value { font-weight: 600; }
+.card.saldo.negativo .value { color: var(--brick); }
+.card.saldo.positivo .value { color: var(--forest); }
+
+section.block {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 20px 22px;
+  margin-bottom: 22px;
+}
+
+section.block h2 {
+  font-family: "IBM Plex Serif", serif;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--forest);
+  margin: 0 0 14px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ink);
+}
+
+table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+
+table td.num {
+  font-family: "IBM Plex Mono", monospace;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+table td.num.despesa { color: var(--brick); }
+table td.num.ganho { color: var(--forest); }
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.excluir {
+  color: var(--brick);
+  font-size: 12px;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--brick);
+}
+
+form.lancar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+form.lancar .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+form.lancar label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+input, select {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 7px 8px;
+  border: 1px solid var(--rule);
+  background: #fff;
+  color: var(--ink);
+}
+
+input:focus, select:focus, a:focus, button:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+button {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--forest);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #163c2c;
+}
+
+button.secundario {
+  background: transparent;
+  color: var(--forest);
+  border: 1px solid var(--forest);
+}
+
+.empty {
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+.categoria-tipo-despesa { border-left: 3px solid var(--brick); padding-left: 8px; }
+.categoria-tipo-ganho { border-left: 3px solid var(--forest); padding-left: 8px; }
+
+@media (max-width: 720px) {
+  .cards { grid-template-columns: 1fr; }
+  form.lancar { grid-template-columns: 1fr 1fr; }
+}

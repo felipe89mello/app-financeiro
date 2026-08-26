@@ -1,0 +1,81 @@
+from datetime import date
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+
+from .models import TipoTransacao
+
+
+# ---------- Categoria ----------
+class CategoriaBase(BaseModel):
+    nome: str
+    tipo: TipoTransacao
+
+
+class CategoriaCreate(CategoriaBase):
+    pass
+
+
+class Categoria(CategoriaBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
+# ---------- Transação ----------
+class TransacaoBase(BaseModel):
+    data: date
+    descricao: Optional[str] = None
+    valor: float
+    forma_pagamento: Optional[str] = None
+    tipo: TipoTransacao
+    categoria_id: int
+
+
+class TransacaoCreate(TransacaoBase):
+    pass
+
+
+class TransacaoUpdate(BaseModel):
+    data: Optional[date] = None
+    descricao: Optional[str] = None
+    valor: Optional[float] = None
+    forma_pagamento: Optional[str] = None
+    tipo: Optional[TipoTransacao] = None
+    categoria_id: Optional[int] = None
+
+
+class Transacao(TransacaoBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    categoria: Categoria
+
+
+# ---------- Resumo ----------
+class ResumoCategoria(BaseModel):
+    categoria_id: int
+    categoria: str
+    total: float
+
+
+class ResumoMensal(BaseModel):
+    mes: str  # formato "YYYY-MM"
+    total_despesas: float
+    total_ganhos: float
+    saldo: float
+    por_categoria: list[ResumoCategoria]
+
+
+# ---------- Balanço Anual ----------
+class BalancoMes(BaseModel):
+    mes: int
+    total_despesas: float
+    total_ganhos: float
+    saldo: float
+
+
+class BalancoAnual(BaseModel):
+    ano: int
+    meses: list[BalancoMes]
+    total_despesas_ano: float
+    total_ganhos_ano: float
+    saldo_total: float
