@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Editar categoria{% endblock %}
+{% block content %}
+
+<p style="margin-bottom: 18px;">
+  <a href="/categorias-ui" style="color: var(--ink-soft); text-decoration: none; font-size: 13px;">‹ Voltar</a>
+</p>
+
+<section class="block">
+  <h2>Editar categoria</h2>
+  <form class="lancar" method="post" action="/ui/categorias/{{ categoria.id }}/editar" style="grid-template-columns: 2fr auto;">
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" value="{{ categoria.nome }}" required>
+    </div>
+    <button type="submit">Salvar</button>
+  </form>
+  <p class="empty" style="margin-top: 14px;">
+    Tipo: {{ 'Despesa' if categoria.tipo.value == 'despesa' else 'Ganho' }} (não pode ser alterado por aqui, pra não misturar com lançamentos já feitos)
+  </p>
+</section>
+
+{% endblock %}

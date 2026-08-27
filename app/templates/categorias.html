@@ -2,6 +2,12 @@
 {% block title %}Categorias{% endblock %}
 {% block content %}
 
+{% if erro %}
+<div class="block" style="border-color: var(--brick); background: var(--brick-soft); color: var(--brick);">
+  {{ erro }}
+</div>
+{% endif %}
+
 <section class="block">
   <h2>Nova categoria</h2>
   <form class="lancar" method="post" action="/ui/categorias" style="grid-template-columns: 2fr 1fr auto;">
@@ -22,13 +28,17 @@
 
 <section class="block">
   <h2>Despesas</h2>
-  {% if categorias_despesa %}
+  {% if despesa_ativas %}
   <table>
     <tbody>
-      {% for c in categorias_despesa %}
+      {% for c in despesa_ativas %}
       <tr>
         <td class="categoria-tipo-despesa">{{ c.nome }}</td>
-        <td style="text-align:right">
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="/ui/categorias/{{ c.id }}/editar" style="color: var(--ink-soft); font-size:12px; text-decoration:none; border-bottom: 1px dotted var(--ink-soft); margin-right:14px;">editar</a>
+          <form method="post" action="/ui/categorias/{{ c.id }}/arquivar" style="display:inline; margin-right:14px;">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--ink-soft);font-size:12px;">arquivar</button>
+          </form>
           <form method="post" action="/ui/categorias/{{ c.id }}/excluir" style="display:inline">
             <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
           </form>
@@ -44,13 +54,17 @@
 
 <section class="block">
   <h2>Ganhos</h2>
-  {% if categorias_ganho %}
+  {% if ganho_ativas %}
   <table>
     <tbody>
-      {% for c in categorias_ganho %}
+      {% for c in ganho_ativas %}
       <tr>
         <td class="categoria-tipo-ganho">{{ c.nome }}</td>
-        <td style="text-align:right">
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="/ui/categorias/{{ c.id }}/editar" style="color: var(--ink-soft); font-size:12px; text-decoration:none; border-bottom: 1px dotted var(--ink-soft); margin-right:14px;">editar</a>
+          <form method="post" action="/ui/categorias/{{ c.id }}/arquivar" style="display:inline; margin-right:14px;">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--ink-soft);font-size:12px;">arquivar</button>
+          </form>
           <form method="post" action="/ui/categorias/{{ c.id }}/excluir" style="display:inline">
             <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
           </form>
@@ -63,5 +77,36 @@
   <p class="empty">Nenhuma categoria de ganho cadastrada.</p>
   {% endif %}
 </section>
+
+{% if despesa_arquivadas or ganho_arquivadas %}
+<section class="block">
+  <h2>Arquivadas</h2>
+  <p class="empty" style="margin-bottom: 12px;">Não aparecem mais pra escolher em lançamentos novos, mas continuam normalmente no histórico.</p>
+  <table>
+    <tbody>
+      {% for c in despesa_arquivadas %}
+      <tr>
+        <td class="categoria-tipo-despesa" style="color: var(--ink-soft);">{{ c.nome }} <span class="tag">despesa</span></td>
+        <td style="text-align:right; white-space:nowrap;">
+          <form method="post" action="/ui/categorias/{{ c.id }}/reativar" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--forest);font-size:12px;">reativar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      {% for c in ganho_arquivadas %}
+      <tr>
+        <td class="categoria-tipo-ganho" style="color: var(--ink-soft);">{{ c.nome }} <span class="tag">ganho</span></td>
+        <td style="text-align:right; white-space:nowrap;">
+          <form method="post" action="/ui/categorias/{{ c.id }}/reativar" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--forest);font-size:12px;">reativar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
 
 {% endblock %}

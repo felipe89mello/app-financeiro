@@ -5,6 +5,10 @@ MESES_PT = [
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ]
 
+FORMAS_PAGAMENTO = [
+    "Cartão de Crédito", "Débito", "Pix", "Dinheiro", "Vale Alimentação", "Outro",
+]
+
 
 def nome_mes(ano: int, mes: int) -> str:
     return f"{MESES_PT[mes]} de {ano}"

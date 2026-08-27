@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Formas de Pagamento{% endblock %}
+{% block content %}
+
+<section class="block">
+  <h2>Nova forma de pagamento</h2>
+  <form class="lancar" method="post" action="/ui/formas-pagamento" style="grid-template-columns: 2fr auto;">
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" placeholder="Ex: Cartão C6 - Felipe" required>
+    </div>
+    <button type="submit">Adicionar</button>
+  </form>
+</section>
+
+<section class="block">
+  <h2>Formas cadastradas</h2>
+  {% if formas %}
+  <table>
+    <tbody>
+      {% for f in formas %}
+      <tr>
+        <td>{{ f.nome }}</td>
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="/ui/formas-pagamento/{{ f.id }}/editar" style="color: var(--ink-soft); font-size:12px; text-decoration:none; border-bottom: 1px dotted var(--ink-soft); margin-right:14px;">editar</a>
+          <form method="post" action="/ui/formas-pagamento/{{ f.id }}/excluir" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="empty" style="margin-top: 14px;">
+    Excluir aqui só tira a opção da lista pra lançamentos novos — não muda o texto já salvo em lançamentos antigos.
+  </p>
+  {% else %}
+  <p class="empty">Nenhuma forma de pagamento cadastrada.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

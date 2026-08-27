@@ -1,7 +1,7 @@
 import enum
 from datetime import date
 
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Enum, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -23,8 +23,18 @@ class Categoria(Base):
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String, nullable=False)
     tipo = Column(Enum(TipoTransacao), nullable=False, default=TipoTransacao.despesa)
+    # Categoria "arquivada" (ativa=False) some da lista de opções ao lançar algo
+    # novo, mas continua existindo normalmente — o histórico dela não muda.
+    ativa = Column(Boolean, nullable=False, default=True)
 
     transacoes = relationship("Transacao", back_populates="categoria")
+
+
+class FormaPagamento(Base):
+    __tablename__ = "formas_pagamento"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, unique=True, nullable=False)
 
 
 class Transacao(Base):

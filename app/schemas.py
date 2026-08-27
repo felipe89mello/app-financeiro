@@ -19,6 +19,31 @@ class CategoriaCreate(CategoriaBase):
 class Categoria(CategoriaBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    ativa: bool = True
+
+
+class CategoriaUpdate(BaseModel):
+    nome: Optional[str] = None
+    tipo: Optional[TipoTransacao] = None
+    ativa: Optional[bool] = None
+
+
+# ---------- Forma de Pagamento ----------
+class FormaPagamentoBase(BaseModel):
+    nome: str
+
+
+class FormaPagamentoCreate(FormaPagamentoBase):
+    pass
+
+
+class FormaPagamentoUpdate(BaseModel):
+    nome: Optional[str] = None
+
+
+class FormaPagamento(FormaPagamentoBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
 
 
 # ---------- Transação ----------
@@ -63,6 +88,7 @@ class ResumoMensal(BaseModel):
     total_ganhos: float
     saldo: float
     por_categoria: list[ResumoCategoria]
+    por_categoria_ganhos: list[ResumoCategoria] = []
 
 
 # ---------- Balanço Anual ----------

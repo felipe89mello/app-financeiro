@@ -31,9 +31,9 @@ body {
 }
 
 .wrap {
-  max-width: 880px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 32px 24px 80px;
+  padding: 32px 40px 80px;
 }
 
 header.top {
@@ -202,7 +202,7 @@ table tr:last-child td {
 
 form.lancar {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr auto;
   gap: 10px;
   align-items: end;
 }
@@ -266,7 +266,49 @@ button.secundario {
 .categoria-tipo-despesa { border-left: 3px solid var(--brick); padding-left: 8px; }
 .categoria-tipo-ganho { border-left: 3px solid var(--forest); padding-left: 8px; }
 
+.resumo-categoria-grid {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.grafico-pizza-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.grafico-pizza-wrap canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.dot-cor {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rule);
+}
+
+/* Em telas largas (desktop), "Resumo por categoria" e "Lançamentos do mês"
+   ficam lado a lado em vez de empilhados — usa o espaço horizontal da
+   janela em vez de deixar tudo espremido numa coluna estreita no meio. */
+.duas-colunas-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .duas-colunas-desktop { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 720px) {
+  .resumo-categoria-grid { grid-template-columns: 1fr; }
+  .grafico-pizza-wrap { padding-bottom: 10px; }
   .cards { grid-template-columns: 1fr; }
   form.lancar { grid-template-columns: 1fr 1fr; }
 }

@@ -55,29 +55,85 @@
       <label for="valor">Valor (R$)</label>
       <input type="number" step="0.01" min="0" id="valor" name="valor" required>
     </div>
+    <div class="field">
+      <label for="forma_pagamento">Forma de pagamento</label>
+      <select id="forma_pagamento" name="forma_pagamento">
+        <option value="">—</option>
+        {% for f in formas_pagamento %}
+        <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
     <button type="submit">Lançar</button>
   </form>
 </section>
 
+<div class="duas-colunas-desktop">
+
 <section class="block">
-  <h2>Resumo por categoria</h2>
-  {% if resumo.por_categoria %}
-  <table>
-    <thead>
-      <tr><th>Categoria</th><th style="text-align:right">Total</th></tr>
-    </thead>
-    <tbody>
-      {% for item in resumo.por_categoria|sort(attribute='total', reverse=true) %}
-      <tr>
-        <td><a href="/categoria/{{ item.categoria_id }}/{{ ano }}/{{ mes }}" style="color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--ink-soft);">{{ item.categoria }}</a></td>
-        <td class="num despesa">R$ {{ "%.2f"|format(item.total) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="empty">Nenhuma despesa lançada neste mês ainda.</p>
-  {% endif %}
+  <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <span>Resumo por categoria</span>
+    <span style="display:flex; gap:6px;">
+      <button type="button" class="filtro-resumo secundario" data-alvo="despesa" onclick="mostrarResumo('despesa', this)" style="text-transform:none; font-size:12px; padding:5px 12px; background: var(--forest); color:#fff; border-color: var(--forest);">Despesas</button>
+      <button type="button" class="filtro-resumo secundario" data-alvo="ganho" onclick="mostrarResumo('ganho', this)" style="text-transform:none; font-size:12px; padding:5px 12px;">Ganhos</button>
+    </span>
+  </h2>
+
+  <div id="resumo-despesa">
+    {% if resumo.por_categoria %}
+    <div class="resumo-categoria-grid">
+      <div class="grafico-pizza-wrap">
+        <canvas id="graficoPizzaDespesas" width="220" height="220"></canvas>
+      </div>
+      <table>
+        <thead>
+          <tr><th></th><th>Categoria</th><th style="text-align:right">%</th><th style="text-align:right">Total</th></tr>
+        </thead>
+        <tbody>
+          {% set total_despesas_cat = resumo.por_categoria|sum(attribute='total') %}
+          {% for item in resumo.por_categoria|sort(attribute='total', reverse=true) %}
+          <tr>
+            <td><span class="dot-cor" data-grupo="despesa" data-idx="{{ loop.index0 }}"></span></td>
+            <td><a href="/categoria/{{ item.categoria_id }}/{{ ano }}/{{ mes }}" style="color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--ink-soft);">{{ item.categoria }}</a></td>
+            <td class="num" style="color: var(--ink-soft);">{{ "%.0f"|format(item.total / total_despesas_cat * 100 if total_despesas_cat else 0) }}%</td>
+            <td class="num despesa">R$ {{ "%.2f"|format(item.total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Nenhuma despesa lançada neste mês ainda.</p>
+    {% endif %}
+  </div>
+
+  <div id="resumo-ganho" style="display:none;">
+    {% if resumo.por_categoria_ganhos %}
+    <div class="resumo-categoria-grid">
+      <div class="grafico-pizza-wrap">
+        <canvas id="graficoPizzaGanhos" width="220" height="220"></canvas>
+      </div>
+      <table>
+        <thead>
+          <tr><th></th><th>Fonte</th><th style="text-align:right">%</th><th style="text-align:right">Total</th></tr>
+        </thead>
+        <tbody>
+          {% set total_ganhos_cat = resumo.por_categoria_ganhos|sum(attribute='total') %}
+          {% for item in resumo.por_categoria_ganhos|sort(attribute='total', reverse=true) %}
+          <tr>
+            <td><span class="dot-cor" data-grupo="ganho" data-idx="{{ loop.index0 }}"></span></td>
+            <td><a href="/categoria/{{ item.categoria_id }}/{{ ano }}/{{ mes }}" style="color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--ink-soft);">{{ item.categoria }}</a></td>
+            <td class="num" style="color: var(--ink-soft);">{{ "%.0f"|format(item.total / total_ganhos_cat * 100 if total_ganhos_cat else 0) }}%</td>
+            <td class="num ganho">R$ {{ "%.2f"|format(item.total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Nenhum ganho lançado neste mês ainda.</p>
+    {% endif %}
+  </div>
 </section>
 
 <section class="block">
@@ -106,6 +162,7 @@
         <td>{{ t.forma_pagamento or "—" }}</td>
         <td class="num {{ t.tipo.value }}">{{ '-' if t.tipo.value == 'despesa' else '+' }} R$ {{ "%.2f"|format(t.valor) }}</td>
         <td>
+          <a href="/ui/transacoes/{{ t.id }}/editar?voltar_ano={{ ano }}&voltar_mes={{ mes }}" style="color: var(--ink-soft); font-size:12px; text-decoration:none; border-bottom: 1px dotted var(--ink-soft); margin-right:10px;">editar</a>
           <form method="post" action="/ui/transacoes/{{ t.id }}/excluir" style="display:inline">
             <input type="hidden" name="voltar_ano" value="{{ ano }}">
             <input type="hidden" name="voltar_mes" value="{{ mes }}">
@@ -121,6 +178,8 @@
   <p class="empty">Nenhum lançamento neste mês ainda. Use o formulário acima.</p>
   {% endif %}
 </section>
+
+</div>
 
 <script>
 function filtrarLancamentos(tipo, botaoClicado) {
@@ -142,6 +201,68 @@ function filtrarLancamentos(tipo, botaoClicado) {
   var msg = document.getElementById('msg-vazio-filtro');
   if (msg) msg.style.display = visiveis === 0 ? 'block' : 'none';
 }
+
+function mostrarResumo(alvo, botaoClicado) {
+  document.querySelectorAll('.filtro-resumo').forEach(function(b) {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--forest)';
+    b.style.borderColor = 'var(--forest)';
+  });
+  botaoClicado.style.background = 'var(--forest)';
+  botaoClicado.style.color = '#fff';
+
+  document.getElementById('resumo-despesa').style.display = (alvo === 'despesa') ? '' : 'none';
+  document.getElementById('resumo-ganho').style.display = (alvo === 'ganho') ? '' : 'none';
+}
+
+function desenharPizza(canvasId, dados, grupo) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var total = dados.reduce(function(a, b) { return a + b; }, 0);
+  if (total <= 0) return;
+
+  // Paleta gerada por rotação de matiz — funciona pra qualquer quantidade de fatias.
+  var cores = dados.map(function(_, i) {
+    var matiz = (i * 47) % 360;
+    return 'hsl(' + matiz + ', 42%, 45%)';
+  });
+
+  document.querySelectorAll('.dot-cor[data-grupo="' + grupo + '"]').forEach(function(dot) {
+    var i = parseInt(dot.getAttribute('data-idx'), 10);
+    dot.style.background = cores[i];
+  });
+
+  var ctx = canvas.getContext('2d');
+  var cx = canvas.width / 2, cy = canvas.height / 2, raio = Math.min(cx, cy) - 6;
+  var anguloAtual = -Math.PI / 2;
+  dados.forEach(function(valor, i) {
+    var fatia = (valor / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, raio, anguloAtual, anguloAtual + fatia);
+    ctx.closePath();
+    ctx.fillStyle = cores[i];
+    ctx.fill();
+    anguloAtual += fatia;
+  });
+
+  // Miolo vazado (donut), pra ficar mais leve visualmente e combinar com o resto do app.
+  ctx.beginPath();
+  ctx.arc(cx, cy, raio * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card') || '#fbfcf8';
+  ctx.fill();
+}
+
+desenharPizza(
+  'graficoPizzaDespesas',
+  {{ resumo.por_categoria|sort(attribute='total', reverse=true)|map(attribute='total')|list|tojson }},
+  'despesa'
+);
+desenharPizza(
+  'graficoPizzaGanhos',
+  {{ resumo.por_categoria_ganhos|sort(attribute='total', reverse=true)|map(attribute='total')|list|tojson }},
+  'ganho'
+);
 </script>
 
 {% endblock %}

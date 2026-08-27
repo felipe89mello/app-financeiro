@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Editar lançamento{% endblock %}
+{% block content %}
+
+<p style="margin-bottom: 18px;">
+  <a href="/dashboard/{{ voltar_ano }}/{{ voltar_mes }}" style="color: var(--ink-soft); text-decoration: none; font-size: 13px;">‹ Voltar</a>
+</p>
+
+<section class="block">
+  <h2>Editar lançamento</h2>
+  <form class="lancar" method="post" action="/ui/transacoes/{{ transacao.id }}/editar">
+    <input type="hidden" name="voltar_ano" value="{{ voltar_ano }}">
+    <input type="hidden" name="voltar_mes" value="{{ voltar_mes }}">
+    <div class="field">
+      <label for="data">Data</label>
+      <input type="date" id="data" name="data" value="{{ transacao.data.isoformat() }}" required>
+    </div>
+    <div class="field">
+      <label for="descricao">Descrição</label>
+      <input type="text" id="descricao" name="descricao" value="{{ transacao.descricao or '' }}">
+    </div>
+    <div class="field">
+      <label for="tipo">Tipo</label>
+      <select id="tipo" name="tipo" required>
+        <option value="despesa" {{ 'selected' if transacao.tipo.value == 'despesa' }}>Despesa</option>
+        <option value="ganho" {{ 'selected' if transacao.tipo.value == 'ganho' }}>Ganho</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="categoria_id">Categoria</label>
+      <select id="categoria_id" name="categoria_id" required>
+        {% for c in categorias %}
+        <option value="{{ c.id }}" {{ 'selected' if c.id == transacao.categoria_id }}>{{ c.nome }} ({{ 'despesa' if c.tipo.value == 'despesa' else 'ganho' }}){{ ' — arquivada' if not c.ativa }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="valor">Valor (R$)</label>
+      <input type="number" step="0.01" min="0" id="valor" name="valor" value="{{ transacao.valor }}" required>
+    </div>
+    <div class="field">
+      <label for="forma_pagamento">Forma de pagamento</label>
+      <select id="forma_pagamento" name="forma_pagamento">
+        <option value="">—</option>
+        {% for f in formas_pagamento %}
+        <option value="{{ f }}" {{ 'selected' if f == transacao.forma_pagamento }}>{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Salvar</button>
+  </form>
+</section>
+
+{% endblock %}

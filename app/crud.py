@@ -16,15 +16,97 @@ def criar_categoria(db: Session, categoria: schemas.CategoriaCreate) -> models.C
     return db_categoria
 
 
-def listar_categorias(db: Session) -> list[models.Categoria]:
-    return db.query(models.Categoria).order_by(models.Categoria.nome).all()
+def listar_categorias(db: Session, apenas_ativas: bool = False) -> list[models.Categoria]:
+    query = db.query(models.Categoria)
+    if apenas_ativas:
+        query = query.filter(models.Categoria.ativa == True)  # noqa: E712
+    return query.order_by(models.Categoria.nome).all()
 
 
-def excluir_categoria(db: Session, categoria_id: int) -> bool:
+def definir_categoria_ativa(db: Session, categoria_id: int, ativa: bool) -> models.Categoria | None:
     categoria = db.get(models.Categoria, categoria_id)
     if not categoria:
-        return False
+        return None
+    categoria.ativa = ativa
+    db.commit()
+    db.refresh(categoria)
+    return categoria
+
+
+def atualizar_categoria(
+    db: Session, categoria_id: int, dados: schemas.CategoriaUpdate
+) -> models.Categoria | None:
+    categoria = db.get(models.Categoria, categoria_id)
+    if not categoria:
+        return None
+    for campo, valor in dados.model_dump(exclude_unset=True).items():
+        setattr(categoria, campo, valor)
+    db.commit()
+    db.refresh(categoria)
+    return categoria
+
+
+def contar_transacoes_da_categoria(db: Session, categoria_id: int) -> int:
+    return (
+        db.query(models.Transacao)
+        .filter(models.Transacao.categoria_id == categoria_id)
+        .count()
+    )
+
+
+def excluir_categoria(db: Session, categoria_id: int) -> str:
+    """Retorna 'ok', 'nao_encontrada' ou 'em_uso' (nesse caso não exclui —
+    excluir uma categoria com lançamentos deixaria esses lançamentos "órfãos"
+    e quebraria as telas que mostram a categoria de cada um)."""
+    categoria = db.get(models.Categoria, categoria_id)
+    if not categoria:
+        return "nao_encontrada"
+    if contar_transacoes_da_categoria(db, categoria_id) > 0:
+        return "em_uso"
     db.delete(categoria)
+    db.commit()
+    return "ok"
+
+
+# ---------- Forma de Pagamento ----------
+def criar_forma_pagamento(db: Session, dados: schemas.FormaPagamentoCreate) -> models.FormaPagamento:
+    fp = models.FormaPagamento(**dados.model_dump())
+    db.add(fp)
+    db.commit()
+    db.refresh(fp)
+    return fp
+
+
+def listar_formas_pagamento(db: Session) -> list[models.FormaPagamento]:
+    return db.query(models.FormaPagamento).order_by(models.FormaPagamento.nome).all()
+
+
+def obter_forma_pagamento(db: Session, forma_id: int) -> models.FormaPagamento | None:
+    return db.get(models.FormaPagamento, forma_id)
+
+
+def atualizar_forma_pagamento(
+    db: Session, forma_id: int, dados: schemas.FormaPagamentoUpdate
+) -> models.FormaPagamento | None:
+    fp = db.get(models.FormaPagamento, forma_id)
+    if not fp:
+        return None
+    for campo, valor in dados.model_dump(exclude_unset=True).items():
+        setattr(fp, campo, valor)
+    db.commit()
+    db.refresh(fp)
+    return fp
+
+
+def excluir_forma_pagamento(db: Session, forma_id: int) -> bool:
+    # Forma de pagamento é só uma lista de sugestões pro formulário — o valor
+    # já lançado em cada transação é salvo como texto próprio, então excluir
+    # daqui não afeta lançamentos antigos (diferente de categoria, que é
+    # referenciada de verdade e por isso protegida contra exclusão em uso).
+    fp = db.get(models.FormaPagamento, forma_id)
+    if not fp:
+        return False
+    db.delete(fp)
     db.commit()
     return True
 
@@ -110,6 +192,14 @@ def resumo_mensal(db: Session, ano: int, mes: int) -> schemas.ResumoMensal:
         .all()
     )
 
+    por_categoria_ganhos_rows = (
+        base.filter(models.Transacao.tipo == models.TipoTransacao.ganho)
+        .join(models.Categoria)
+        .with_entities(models.Categoria.id, models.Categoria.nome, func.sum(models.Transacao.valor))
+        .group_by(models.Categoria.id, models.Categoria.nome)
+        .all()
+    )
+
     return schemas.ResumoMensal(
         mes=f"{ano:04d}-{mes:02d}",
         total_despesas=total_despesas,
@@ -118,6 +208,10 @@ def resumo_mensal(db: Session, ano: int, mes: int) -> schemas.ResumoMensal:
         por_categoria=[
             schemas.ResumoCategoria(categoria_id=cid, categoria=nome, total=total)
             for cid, nome, total in por_categoria_rows
+        ],
+        por_categoria_ganhos=[
+            schemas.ResumoCategoria(categoria_id=cid, categoria=nome, total=total)
+            for cid, nome, total in por_categoria_ganhos_rows
         ],
     )
 
