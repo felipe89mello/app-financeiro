@@ -308,6 +308,8 @@ def pagina_balanco_anual(ano: int, request: Request, db: Session = Depends(get_d
             "total_despesas_ano": balanco.total_despesas_ano,
             "total_ganhos_ano": balanco.total_ganhos_ano,
             "saldo_total": balanco.saldo_total,
+            "por_categoria": balanco.por_categoria,
+            "por_categoria_ganhos": balanco.por_categoria_ganhos,
         },
     )
 

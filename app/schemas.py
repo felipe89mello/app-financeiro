@@ -105,3 +105,5 @@ class BalancoAnual(BaseModel):
     total_despesas_ano: float
     total_ganhos_ano: float
     saldo_total: float
+    por_categoria: list[ResumoCategoria] = []
+    por_categoria_ganhos: list[ResumoCategoria] = []

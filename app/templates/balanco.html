@@ -59,4 +59,132 @@
   </table>
 </section>
 
+<section class="block">
+  <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <span>Resumo por categoria — {{ ano }}</span>
+    <span style="display:flex; gap:6px;">
+      <button type="button" class="filtro-resumo secundario" data-alvo="despesa" onclick="mostrarResumoBalanco('despesa', this)" style="text-transform:none; font-size:12px; padding:5px 12px; background: var(--forest); color:#fff; border-color: var(--forest);">Despesas</button>
+      <button type="button" class="filtro-resumo secundario" data-alvo="ganho" onclick="mostrarResumoBalanco('ganho', this)" style="text-transform:none; font-size:12px; padding:5px 12px;">Ganhos</button>
+    </span>
+  </h2>
+
+  <div id="balanco-resumo-despesa">
+    {% if por_categoria %}
+    <div class="resumo-categoria-grid">
+      <div class="grafico-pizza-wrap">
+        <canvas id="graficoPizzaBalancoDespesas" width="220" height="220"></canvas>
+      </div>
+      <table>
+        <thead>
+          <tr><th></th><th>Categoria</th><th style="text-align:right">%</th><th style="text-align:right">Total</th></tr>
+        </thead>
+        <tbody>
+          {% set total_desp = por_categoria|sum(attribute='total') %}
+          {% for item in por_categoria|sort(attribute='total', reverse=true) %}
+          <tr>
+            <td><span class="dot-cor" data-grupo="balanco-despesa" data-idx="{{ loop.index0 }}"></span></td>
+            <td>{{ item.categoria }}</td>
+            <td class="num" style="color: var(--ink-soft);">{{ "%.0f"|format(item.total / total_desp * 100 if total_desp else 0) }}%</td>
+            <td class="num despesa">R$ {{ "%.2f"|format(item.total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Nenhuma despesa lançada em {{ ano }}.</p>
+    {% endif %}
+  </div>
+
+  <div id="balanco-resumo-ganho" style="display:none;">
+    {% if por_categoria_ganhos %}
+    <div class="resumo-categoria-grid">
+      <div class="grafico-pizza-wrap">
+        <canvas id="graficoPizzaBalancoGanhos" width="220" height="220"></canvas>
+      </div>
+      <table>
+        <thead>
+          <tr><th></th><th>Fonte</th><th style="text-align:right">%</th><th style="text-align:right">Total</th></tr>
+        </thead>
+        <tbody>
+          {% set total_gan = por_categoria_ganhos|sum(attribute='total') %}
+          {% for item in por_categoria_ganhos|sort(attribute='total', reverse=true) %}
+          <tr>
+            <td><span class="dot-cor" data-grupo="balanco-ganho" data-idx="{{ loop.index0 }}"></span></td>
+            <td>{{ item.categoria }}</td>
+            <td class="num" style="color: var(--ink-soft);">{{ "%.0f"|format(item.total / total_gan * 100 if total_gan else 0) }}%</td>
+            <td class="num ganho">R$ {{ "%.2f"|format(item.total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Nenhum ganho lançado em {{ ano }}.</p>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+function mostrarResumoBalanco(alvo, botaoClicado) {
+  document.querySelectorAll('.filtro-resumo').forEach(function(b) {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--forest)';
+    b.style.borderColor = 'var(--forest)';
+  });
+  botaoClicado.style.background = 'var(--forest)';
+  botaoClicado.style.color = '#fff';
+
+  document.getElementById('balanco-resumo-despesa').style.display = (alvo === 'despesa') ? '' : 'none';
+  document.getElementById('balanco-resumo-ganho').style.display = (alvo === 'ganho') ? '' : 'none';
+}
+
+function desenharPizzaBalanco(canvasId, dados, grupo) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var total = dados.reduce(function(a, b) { return a + b; }, 0);
+  if (total <= 0) return;
+
+  var cores = dados.map(function(_, i) {
+    var matiz = (i * 47) % 360;
+    return 'hsl(' + matiz + ', 42%, 45%)';
+  });
+
+  document.querySelectorAll('.dot-cor[data-grupo="' + grupo + '"]').forEach(function(dot) {
+    var i = parseInt(dot.getAttribute('data-idx'), 10);
+    dot.style.background = cores[i];
+  });
+
+  var ctx = canvas.getContext('2d');
+  var cx = canvas.width / 2, cy = canvas.height / 2, raio = Math.min(cx, cy) - 6;
+  var anguloAtual = -Math.PI / 2;
+  dados.forEach(function(valor, i) {
+    var fatia = (valor / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, raio, anguloAtual, anguloAtual + fatia);
+    ctx.closePath();
+    ctx.fillStyle = cores[i];
+    ctx.fill();
+    anguloAtual += fatia;
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, raio * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card') || '#fbfcf8';
+  ctx.fill();
+}
+
+desenharPizzaBalanco(
+  'graficoPizzaBalancoDespesas',
+  {{ por_categoria|sort(attribute='total', reverse=true)|map(attribute='total')|list|tojson }},
+  'balanco-despesa'
+);
+desenharPizzaBalanco(
+  'graficoPizzaBalancoGanhos',
+  {{ por_categoria_ganhos|sort(attribute='total', reverse=true)|map(attribute='total')|list|tojson }},
+  'balanco-ganho'
+);
+</script>
+
 {% endblock %}

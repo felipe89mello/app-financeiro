@@ -221,6 +221,9 @@ def balanco_anual(db: Session, ano: int) -> schemas.BalancoAnual:
     saldo_total = 0.0
     total_despesas_ano = 0.0
     total_ganhos_ano = 0.0
+    despesas_por_categoria: dict[int, dict] = {}
+    ganhos_por_categoria: dict[int, dict] = {}
+
     for mes in range(1, 13):
         r = resumo_mensal(db, ano, mes)
         meses.append(schemas.BalancoMes(
@@ -232,9 +235,29 @@ def balanco_anual(db: Session, ano: int) -> schemas.BalancoAnual:
         saldo_total += r.saldo
         total_despesas_ano += r.total_despesas
         total_ganhos_ano += r.total_ganhos
+
+        for item in r.por_categoria:
+            acumulado = despesas_por_categoria.setdefault(
+                item.categoria_id, {"categoria": item.categoria, "total": 0.0}
+            )
+            acumulado["total"] += item.total
+        for item in r.por_categoria_ganhos:
+            acumulado = ganhos_por_categoria.setdefault(
+                item.categoria_id, {"categoria": item.categoria, "total": 0.0}
+            )
+            acumulado["total"] += item.total
+
     return schemas.BalancoAnual(
         ano=ano, meses=meses,
         total_despesas_ano=total_despesas_ano,
         total_ganhos_ano=total_ganhos_ano,
         saldo_total=saldo_total,
+        por_categoria=[
+            schemas.ResumoCategoria(categoria_id=cid, categoria=v["categoria"], total=v["total"])
+            for cid, v in despesas_por_categoria.items()
+        ],
+        por_categoria_ganhos=[
+            schemas.ResumoCategoria(categoria_id=cid, categoria=v["categoria"], total=v["total"])
+            for cid, v in ganhos_por_categoria.items()
+        ],
     )
