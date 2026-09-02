@@ -261,3 +261,89 @@ def balanco_anual(db: Session, ano: int) -> schemas.BalancoAnual:
             for cid, v in ganhos_por_categoria.items()
         ],
     )
+
+
+# ---------- Conta Fixa (lembrete de conta a pagar) ----------
+def criar_conta_fixa(db: Session, dados: schemas.ContaFixaCreate) -> models.ContaFixa:
+    cf = models.ContaFixa(**dados.model_dump())
+    db.add(cf)
+    db.commit()
+    db.refresh(cf)
+    return cf
+
+
+def listar_contas_fixas(db: Session, apenas_ativas: bool = False) -> list[models.ContaFixa]:
+    query = db.query(models.ContaFixa)
+    if apenas_ativas:
+        query = query.filter(models.ContaFixa.ativa == True)  # noqa: E712
+    return query.order_by(models.ContaFixa.nome).all()
+
+
+def obter_conta_fixa(db: Session, conta_fixa_id: int) -> models.ContaFixa | None:
+    return db.get(models.ContaFixa, conta_fixa_id)
+
+
+def atualizar_conta_fixa(
+    db: Session, conta_fixa_id: int, dados: schemas.ContaFixaUpdate
+) -> models.ContaFixa | None:
+    cf = db.get(models.ContaFixa, conta_fixa_id)
+    if not cf:
+        return None
+    for campo, valor in dados.model_dump(exclude_unset=True).items():
+        setattr(cf, campo, valor)
+    db.commit()
+    db.refresh(cf)
+    return cf
+
+
+def excluir_conta_fixa(db: Session, conta_fixa_id: int) -> bool:
+    cf = db.get(models.ContaFixa, conta_fixa_id)
+    if not cf:
+        return False
+    db.delete(cf)  # cascade apaga o histórico de pago/não pago dela também
+    db.commit()
+    return True
+
+
+def listar_contas_fixas_com_status(
+    db: Session, ano: int, mes: int
+) -> list[schemas.ContaFixaComStatus]:
+    contas = listar_contas_fixas(db, apenas_ativas=True)
+    pagamentos = {
+        p.conta_fixa_id: p
+        for p in db.query(models.ContaFixaPagamento).filter(
+            models.ContaFixaPagamento.ano == ano,
+            models.ContaFixaPagamento.mes == mes,
+        ).all()
+    }
+    return [
+        schemas.ContaFixaComStatus(
+            id=c.id,
+            nome=c.nome,
+            valor_esperado=c.valor_esperado,
+            dia_vencimento=c.dia_vencimento,
+            pago=pagamentos[c.id].pago if c.id in pagamentos else False,
+        )
+        for c in contas
+    ]
+
+
+def alternar_pagamento_conta_fixa(db: Session, conta_fixa_id: int, ano: int, mes: int) -> None:
+    pagamento = (
+        db.query(models.ContaFixaPagamento)
+        .filter(
+            models.ContaFixaPagamento.conta_fixa_id == conta_fixa_id,
+            models.ContaFixaPagamento.ano == ano,
+            models.ContaFixaPagamento.mes == mes,
+        )
+        .first()
+    )
+    if not pagamento:
+        pagamento = models.ContaFixaPagamento(
+            conta_fixa_id=conta_fixa_id, ano=ano, mes=mes, pago=False
+        )
+        db.add(pagamento)
+
+    pagamento.pago = not pagamento.pago
+    pagamento.data_pagamento = date.today() if pagamento.pago else None
+    db.commit()

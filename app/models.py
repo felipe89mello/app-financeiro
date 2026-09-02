@@ -49,3 +49,36 @@ class Transacao(Base):
 
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     categoria = relationship("Categoria", back_populates="transacoes")
+
+
+class ContaFixa(Base):
+    """Um lembrete de conta mensal recorrente (aluguel, internet, etc.) —
+    o cadastro em si, não o status de um mês específico."""
+    __tablename__ = "contas_fixas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    valor_esperado = Column(Float, nullable=True)
+    dia_vencimento = Column(Integer, nullable=True)  # 1–31, opcional
+    ativa = Column(Boolean, nullable=False, default=True)
+
+    pagamentos = relationship(
+        "ContaFixaPagamento", back_populates="conta_fixa", cascade="all, delete-orphan"
+    )
+
+
+class ContaFixaPagamento(Base):
+    """Se uma conta fixa foi marcada como paga num mês/ano específico."""
+    __tablename__ = "contas_fixas_pagamentos"
+    __table_args__ = (
+        UniqueConstraint("conta_fixa_id", "ano", "mes", name="uq_conta_fixa_ano_mes"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    conta_fixa_id = Column(Integer, ForeignKey("contas_fixas.id"), nullable=False)
+    ano = Column(Integer, nullable=False)
+    mes = Column(Integer, nullable=False)
+    pago = Column(Boolean, nullable=False, default=False)
+    data_pagamento = Column(Date, nullable=True)
+
+    conta_fixa = relationship("ContaFixa", back_populates="pagamentos")

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Editar conta fixa{% endblock %}
+{% block content %}
+
+<p style="margin-bottom: 18px;">
+  <a href="/contas-fixas-ui" style="color: var(--ink-soft); text-decoration: none; font-size: 13px;">‹ Voltar</a>
+</p>
+
+<section class="block">
+  <h2>Editar conta fixa</h2>
+  <form class="lancar" method="post" action="/ui/contas-fixas/{{ conta_fixa.id }}/editar" style="grid-template-columns: 2fr 1fr 1fr auto;">
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" value="{{ conta_fixa.nome }}" required>
+    </div>
+    <div class="field">
+      <label for="valor_esperado">Valor esperado (opcional)</label>
+      <input type="number" step="0.01" min="0" id="valor_esperado" name="valor_esperado" value="{{ conta_fixa.valor_esperado if conta_fixa.valor_esperado is not none else '' }}">
+    </div>
+    <div class="field">
+      <label for="dia_vencimento">Dia do vencimento (opcional)</label>
+      <input type="number" min="1" max="31" id="dia_vencimento" name="dia_vencimento" value="{{ conta_fixa.dia_vencimento if conta_fixa.dia_vencimento is not none else '' }}">
+    </div>
+    <button type="submit">Salvar</button>
+  </form>
+</section>
+
+{% endblock %}

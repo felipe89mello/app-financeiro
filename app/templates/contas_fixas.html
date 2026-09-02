@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Contas Fixas{% endblock %}
+{% block content %}
+
+<section class="block">
+  <h2>Nova conta fixa</h2>
+  <form class="lancar" method="post" action="/ui/contas-fixas" style="grid-template-columns: 2fr 1fr 1fr auto;">
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" placeholder="Ex: Aluguel" required>
+    </div>
+    <div class="field">
+      <label for="valor_esperado">Valor esperado (opcional)</label>
+      <input type="number" step="0.01" min="0" id="valor_esperado" name="valor_esperado" placeholder="R$">
+    </div>
+    <div class="field">
+      <label for="dia_vencimento">Dia do vencimento (opcional)</label>
+      <input type="number" min="1" max="31" id="dia_vencimento" name="dia_vencimento" placeholder="Ex: 10">
+    </div>
+    <button type="submit">Adicionar</button>
+  </form>
+</section>
+
+<section class="block">
+  <h2>Contas cadastradas</h2>
+  {% if ativas %}
+  <table>
+    <thead>
+      <tr><th>Nome</th><th>Valor esperado</th><th>Vencimento</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for c in ativas %}
+      <tr>
+        <td>{{ c.nome }}</td>
+        <td>{{ "R$ %.2f"|format(c.valor_esperado) if c.valor_esperado else "—" }}</td>
+        <td>{{ "dia " ~ c.dia_vencimento if c.dia_vencimento else "—" }}</td>
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="/ui/contas-fixas/{{ c.id }}/editar" style="color: var(--ink-soft); font-size:12px; text-decoration:none; border-bottom: 1px dotted var(--ink-soft); margin-right:14px;">editar</a>
+          <form method="post" action="/ui/contas-fixas/{{ c.id }}/arquivar" style="display:inline; margin-right:14px;">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--ink-soft);font-size:12px;">arquivar</button>
+          </form>
+          <form method="post" action="/ui/contas-fixas/{{ c.id }}/excluir" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Nenhuma conta fixa cadastrada ainda.</p>
+  {% endif %}
+</section>
+
+{% if arquivadas %}
+<section class="block">
+  <h2>Arquivadas</h2>
+  <p class="empty" style="margin-bottom: 12px;">Não aparecem mais no lembrete mensal do dashboard.</p>
+  <table>
+    <tbody>
+      {% for c in arquivadas %}
+      <tr>
+        <td style="color: var(--ink-soft);">{{ c.nome }}</td>
+        <td style="text-align:right; white-space:nowrap;">
+          <form method="post" action="/ui/contas-fixas/{{ c.id }}/reativar" style="display:inline">
+            <button type="submit" style="all:unset;cursor:pointer;color:var(--forest);font-size:12px;">reativar</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% endblock %}

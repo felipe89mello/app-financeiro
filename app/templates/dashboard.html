@@ -70,6 +70,8 @@
 
 <div class="duas-colunas-desktop">
 
+<div>
+
 <section class="block">
   <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
     <span>Resumo por categoria</span>
@@ -135,6 +137,37 @@
     {% endif %}
   </div>
 </section>
+
+<section class="block">
+  <h2>Contas a Pagar do Mês</h2>
+  {% if contas_fixas %}
+  <div class="lista-contas-fixas">
+    {% for c in contas_fixas %}
+    <div class="linha-conta-fixa">
+      <div class="linha-conta-fixa-info">
+        <span class="linha-conta-fixa-nome">{{ c.nome }}</span>
+        <span class="linha-conta-fixa-detalhe">
+          {% if c.valor_esperado %}R$ {{ "%.2f"|format(c.valor_esperado) }}{% endif %}
+          {% if c.valor_esperado and c.dia_vencimento %} · {% endif %}
+          {% if c.dia_vencimento %}vence dia {{ c.dia_vencimento }}{% endif %}
+        </span>
+      </div>
+      <form method="post" action="/ui/contas-fixas/{{ c.id }}/alternar">
+        <input type="hidden" name="voltar_ano" value="{{ ano }}">
+        <input type="hidden" name="voltar_mes" value="{{ mes }}">
+        <button type="submit" class="botao-status-conta {{ 'pago' if c.pago else 'nao-pago' }}">
+          {{ 'Pago' if c.pago else 'Não pago' }}
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty">Nenhuma conta fixa cadastrada. Adicione em "Contas Fixas" no menu.</p>
+  {% endif %}
+</section>
+
+</div>
 
 <section class="block">
   <h2 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">

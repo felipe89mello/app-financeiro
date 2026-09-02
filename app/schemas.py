@@ -107,3 +107,36 @@ class BalancoAnual(BaseModel):
     saldo_total: float
     por_categoria: list[ResumoCategoria] = []
     por_categoria_ganhos: list[ResumoCategoria] = []
+
+
+# ---------- Conta Fixa (lembrete de conta a pagar) ----------
+class ContaFixaBase(BaseModel):
+    nome: str
+    valor_esperado: Optional[float] = None
+    dia_vencimento: Optional[int] = None
+
+
+class ContaFixaCreate(ContaFixaBase):
+    pass
+
+
+class ContaFixaUpdate(BaseModel):
+    nome: Optional[str] = None
+    valor_esperado: Optional[float] = None
+    dia_vencimento: Optional[int] = None
+    ativa: Optional[bool] = None
+
+
+class ContaFixa(ContaFixaBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    ativa: bool = True
+
+
+class ContaFixaComStatus(BaseModel):
+    """Como aparece no dashboard de um mês: os dados da conta + se já foi paga."""
+    id: int
+    nome: str
+    valor_esperado: Optional[float] = None
+    dia_vencimento: Optional[int] = None
+    pago: bool = False

@@ -120,6 +120,7 @@ def pagina_dashboard(ano: int, mes: int, request: Request, db: Session = Depends
     transacoes = crud.listar_transacoes(db, ano=ano, mes=mes)
     categorias = crud.listar_categorias(db, apenas_ativas=True)
     formas_pagamento = crud.listar_formas_pagamento(db)
+    contas_fixas = crud.listar_contas_fixas_com_status(db, ano, mes)
     prev_ano, prev_mes = utils.mes_anterior(ano, mes)
     next_ano, next_mes = utils.mes_seguinte(ano, mes)
 
@@ -137,9 +138,21 @@ def pagina_dashboard(ano: int, mes: int, request: Request, db: Session = Depends
             "transacoes": transacoes,
             "categorias": categorias,
             "formas_pagamento": [f.nome for f in formas_pagamento],
+            "contas_fixas": contas_fixas,
             "hoje": date.today().isoformat(),
         },
     )
+
+
+@app.post("/ui/contas-fixas/{conta_fixa_id}/alternar")
+def form_alternar_pagamento_conta_fixa(
+    conta_fixa_id: int,
+    voltar_ano: int = Form(...),
+    voltar_mes: int = Form(...),
+    db: Session = Depends(get_db),
+):
+    crud.alternar_pagamento_conta_fixa(db, conta_fixa_id, voltar_ano, voltar_mes)
+    return RedirectResponse(url=f"/dashboard/{voltar_ano}/{voltar_mes}", status_code=303)
 
 
 @app.post("/ui/transacoes")
@@ -312,6 +325,81 @@ def pagina_balanco_anual(ano: int, request: Request, db: Session = Depends(get_d
             "por_categoria_ganhos": balanco.por_categoria_ganhos,
         },
     )
+
+
+@app.get("/contas-fixas-ui")
+def pagina_contas_fixas(request: Request, db: Session = Depends(get_db)):
+    todas = crud.listar_contas_fixas(db)
+    return templates.TemplateResponse(
+        request,
+        "contas_fixas.html",
+        {
+            "ativo": "contas_fixas",
+            "ativas": [c for c in todas if c.ativa],
+            "arquivadas": [c for c in todas if not c.ativa],
+        },
+    )
+
+
+@app.post("/ui/contas-fixas")
+def form_criar_conta_fixa(
+    nome: str = Form(...),
+    valor_esperado: str = Form(""),
+    dia_vencimento: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    crud.criar_conta_fixa(db, schemas.ContaFixaCreate(
+        nome=nome,
+        valor_esperado=float(valor_esperado) if valor_esperado else None,
+        dia_vencimento=int(dia_vencimento) if dia_vencimento else None,
+    ))
+    return RedirectResponse(url="/contas-fixas-ui", status_code=303)
+
+
+@app.get("/ui/contas-fixas/{conta_fixa_id}/editar")
+def pagina_editar_conta_fixa(conta_fixa_id: int, request: Request, db: Session = Depends(get_db)):
+    cf = crud.obter_conta_fixa(db, conta_fixa_id)
+    if not cf:
+        raise HTTPException(status_code=404, detail="Conta fixa não encontrada")
+    return templates.TemplateResponse(
+        request,
+        "editar_conta_fixa.html",
+        {"ativo": "contas_fixas", "conta_fixa": cf},
+    )
+
+
+@app.post("/ui/contas-fixas/{conta_fixa_id}/editar")
+def form_editar_conta_fixa(
+    conta_fixa_id: int,
+    nome: str = Form(...),
+    valor_esperado: str = Form(""),
+    dia_vencimento: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    crud.atualizar_conta_fixa(db, conta_fixa_id, schemas.ContaFixaUpdate(
+        nome=nome,
+        valor_esperado=float(valor_esperado) if valor_esperado else None,
+        dia_vencimento=int(dia_vencimento) if dia_vencimento else None,
+    ))
+    return RedirectResponse(url="/contas-fixas-ui", status_code=303)
+
+
+@app.post("/ui/contas-fixas/{conta_fixa_id}/arquivar")
+def form_arquivar_conta_fixa(conta_fixa_id: int, db: Session = Depends(get_db)):
+    crud.atualizar_conta_fixa(db, conta_fixa_id, schemas.ContaFixaUpdate(ativa=False))
+    return RedirectResponse(url="/contas-fixas-ui", status_code=303)
+
+
+@app.post("/ui/contas-fixas/{conta_fixa_id}/reativar")
+def form_reativar_conta_fixa(conta_fixa_id: int, db: Session = Depends(get_db)):
+    crud.atualizar_conta_fixa(db, conta_fixa_id, schemas.ContaFixaUpdate(ativa=True))
+    return RedirectResponse(url="/contas-fixas-ui", status_code=303)
+
+
+@app.post("/ui/contas-fixas/{conta_fixa_id}/excluir")
+def form_excluir_conta_fixa(conta_fixa_id: int, db: Session = Depends(get_db)):
+    crud.excluir_conta_fixa(db, conta_fixa_id)
+    return RedirectResponse(url="/contas-fixas-ui", status_code=303)
 
 
 @app.get("/formas-pagamento-ui")
