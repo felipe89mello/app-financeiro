@@ -166,6 +166,26 @@ def excluir_transacao(db: Session, transacao_id: int) -> bool:
     return True
 
 
+def excluir_serie_transacao(db: Session, transacao_id: int) -> int:
+    """Exclui a transação informada e, se ela fizer parte de uma compra
+    parcelada, todas as outras parcelas da mesma série (mesmo
+    parcela_grupo). Retorna quantos lançamentos foram excluídos."""
+    transacao = db.get(models.Transacao, transacao_id)
+    if not transacao:
+        return 0
+    if not transacao.parcela_grupo:
+        db.delete(transacao)
+        db.commit()
+        return 1
+    qtd = (
+        db.query(models.Transacao)
+        .filter(models.Transacao.parcela_grupo == transacao.parcela_grupo)
+        .delete()
+    )
+    db.commit()
+    return qtd
+
+
 # ---------- Resumo ----------
 def resumo_mensal(db: Session, ano: int, mes: int) -> schemas.ResumoMensal:
     base = db.query(models.Transacao).filter(

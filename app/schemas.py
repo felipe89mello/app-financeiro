@@ -57,7 +57,11 @@ class TransacaoBase(BaseModel):
 
 
 class TransacaoCreate(TransacaoBase):
-    pass
+    # Preenchidos só quando o lançamento faz parte de uma compra parcelada
+    # gerada automaticamente (ver POST /ui/transacoes em main.py).
+    parcela_grupo: Optional[str] = None
+    parcela_numero: Optional[int] = None
+    parcela_total: Optional[int] = None
 
 
 class TransacaoUpdate(BaseModel):
@@ -73,6 +77,9 @@ class Transacao(TransacaoBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     categoria: Categoria
+    parcela_grupo: Optional[str] = None
+    parcela_numero: Optional[int] = None
+    parcela_total: Optional[int] = None
 
 
 # ---------- Resumo ----------

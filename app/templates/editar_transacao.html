@@ -30,7 +30,7 @@
       <label for="categoria_id">Categoria</label>
       <select id="categoria_id" name="categoria_id" required>
         {% for c in categorias %}
-        <option value="{{ c.id }}" {{ 'selected' if c.id == transacao.categoria_id }}>{{ c.nome }} ({{ 'despesa' if c.tipo.value == 'despesa' else 'ganho' }}){{ ' — arquivada' if not c.ativa }}</option>
+        <option value="{{ c.id }}" data-tipo="{{ c.tipo.value }}" {{ 'selected' if c.id == transacao.categoria_id }}>{{ c.nome }} ({{ 'despesa' if c.tipo.value == 'despesa' else 'ganho' }}){{ ' — arquivada' if not c.ativa }}</option>
         {% endfor %}
       </select>
     </div>
@@ -49,6 +49,18 @@
     </div>
     <button type="submit">Salvar</button>
   </form>
+  {% if transacao.parcela_total %}
+  <p class="empty" style="margin-top: 14px;">
+    Esse lançamento é a parcela {{ transacao.parcela_numero }} de {{ transacao.parcela_total }} de uma compra parcelada.
+    Editar aqui muda só esta parcela — use "excluir série" no painel de lançamentos para remover todas de uma vez.
+  </p>
+  {% endif %}
 </section>
+
+<script>
+initFiltroTipoCategoria('tipo', 'categoria_id');
+initCombobox('categoria_id');
+initCombobox('forma_pagamento');
+</script>
 
 {% endblock %}

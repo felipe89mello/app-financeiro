@@ -50,6 +50,14 @@ class Transacao(Base):
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     categoria = relationship("Categoria", back_populates="transacoes")
 
+    # Compra parcelada (opcional): quando o lançamento faz parte de uma série
+    # gerada automaticamente (ex: 12x), todas as parcelas compartilham o
+    # mesmo parcela_grupo — isso permite mostrar "3/12" na tela e, se
+    # preciso, excluir a série inteira de uma vez.
+    parcela_grupo = Column(String, nullable=True, index=True)
+    parcela_numero = Column(Integer, nullable=True)
+    parcela_total = Column(Integer, nullable=True)
+
 
 class ContaFixa(Base):
     """Um lembrete de conta mensal recorrente (aluguel, internet, etc.) —

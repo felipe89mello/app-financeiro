@@ -64,6 +64,10 @@
         {% endfor %}
       </select>
     </div>
+    <div class="field">
+      <label for="parcelas">Parcelas</label>
+      <input type="number" min="1" max="120" id="parcelas" name="parcelas" value="1" title="Número de parcelas mensais. Deixe 1 para um lançamento único; use, por exemplo, 12 para uma compra em 12x — o app lança uma parcela em cada mês automaticamente.">
+    </div>
     <button type="submit">Lançar</button>
   </form>
 </section>
@@ -190,7 +194,7 @@
       {% for t in transacoes %}
       <tr data-tipo="{{ t.tipo.value }}">
         <td>{{ t.data.strftime("%d/%m") }}</td>
-        <td>{{ t.descricao or "—" }}</td>
+        <td>{{ t.descricao or "—" }}{% if t.parcela_total %} <span class="parcela-badge" title="Parcela {{ t.parcela_numero }} de {{ t.parcela_total }}">{{ t.parcela_numero }}/{{ t.parcela_total }}</span>{% endif %}</td>
         <td><span class="tag">{{ t.categoria.nome }}</span></td>
         <td>{{ t.forma_pagamento or "—" }}</td>
         <td class="num {{ t.tipo.value }}">{{ '-' if t.tipo.value == 'despesa' else '+' }} R$ {{ "%.2f"|format(t.valor) }}</td>
@@ -201,6 +205,13 @@
             <input type="hidden" name="voltar_mes" value="{{ mes }}">
             <button type="submit" class="excluir" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;">excluir</button>
           </form>
+          {% if t.parcela_grupo %}
+          <form method="post" action="/ui/transacoes/{{ t.id }}/excluir-serie" style="display:inline" onsubmit="return confirm('Excluir todas as {{ t.parcela_total }} parcelas dessa série? Essa ação não pode ser desfeita.');">
+            <input type="hidden" name="voltar_ano" value="{{ ano }}">
+            <input type="hidden" name="voltar_mes" value="{{ mes }}">
+            <button type="submit" class="excluir" style="all:unset;cursor:pointer;color:var(--brick);font-size:12px;margin-left:10px;" title="Excluir esta e todas as outras parcelas dessa série">excluir série</button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
@@ -296,6 +307,13 @@ desenharPizza(
   {{ resumo.por_categoria_ganhos|sort(attribute='total', reverse=true)|map(attribute='total')|list|tojson }},
   'ganho'
 );
+
+// Melhorias do formulário "Novo lançamento" (ver app/static/combobox.js):
+// a categoria mostrada depende do tipo escolhido, e os campos de
+// categoria/forma de pagamento ganham um filtro de busca por texto.
+initFiltroTipoCategoria('tipo', 'categoria_id');
+initCombobox('categoria_id');
+initCombobox('forma_pagamento');
 </script>
 
 {% endblock %}

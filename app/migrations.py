@@ -29,3 +29,15 @@ def migrar(engine: Engine) -> None:
                 "ALTER TABLE categorias ADD COLUMN ativa BOOLEAN NOT NULL DEFAULT 1"
             ))
             conn.commit()
+
+    # Compras parceladas (ver app/models.py — Transacao.parcela_*).
+    colunas_parcela = [
+        ("parcela_grupo", "ALTER TABLE transacoes ADD COLUMN parcela_grupo VARCHAR"),
+        ("parcela_numero", "ALTER TABLE transacoes ADD COLUMN parcela_numero INTEGER"),
+        ("parcela_total", "ALTER TABLE transacoes ADD COLUMN parcela_total INTEGER"),
+    ]
+    for coluna, ddl in colunas_parcela:
+        if not _coluna_existe(engine, "transacoes", coluna):
+            with engine.connect() as conn:
+                conn.execute(text(ddl))
+                conn.commit()

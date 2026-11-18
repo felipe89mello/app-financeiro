@@ -1,5 +1,6 @@
 from datetime import date
 from urllib.parse import quote
+from uuid import uuid4
 
 from fastapi import FastAPI, Depends, HTTPException, Request, Form
 from fastapi.responses import RedirectResponse
@@ -163,14 +164,29 @@ def form_criar_transacao(
     categoria_id: int = Form(...),
     valor: float = Form(...),
     forma_pagamento: str = Form(""),
+    parcelas: int = Form(1),
     voltar_ano: int = Form(...),
     voltar_mes: int = Form(...),
     db: Session = Depends(get_db),
 ):
-    crud.criar_transacao(db, schemas.TransacaoCreate(
-        data=data, descricao=descricao or None, tipo=tipo,
-        categoria_id=categoria_id, valor=valor, forma_pagamento=forma_pagamento or None,
-    ))
+    # Compra parcelada: se parcelas > 1, gera um lançamento por mês (mesmo
+    # valor em cada um, como uma fatura de cartão), em vez de precisar
+    # lançar mês a mês na mão. Trava entre 1 e 120 só por segurança.
+    total_parcelas = max(1, min(parcelas or 1, 120))
+    grupo = str(uuid4()) if total_parcelas > 1 else None
+
+    for i in range(total_parcelas):
+        crud.criar_transacao(db, schemas.TransacaoCreate(
+            data=utils.somar_meses(data, i),
+            descricao=descricao or None,
+            tipo=tipo,
+            categoria_id=categoria_id,
+            valor=valor,
+            forma_pagamento=forma_pagamento or None,
+            parcela_grupo=grupo,
+            parcela_numero=(i + 1) if grupo else None,
+            parcela_total=total_parcelas if grupo else None,
+        ))
     return RedirectResponse(url=f"/dashboard/{voltar_ano}/{voltar_mes}", status_code=303)
 
 
@@ -182,6 +198,17 @@ def form_excluir_transacao(
     db: Session = Depends(get_db),
 ):
     crud.excluir_transacao(db, transacao_id)
+    return RedirectResponse(url=f"/dashboard/{voltar_ano}/{voltar_mes}", status_code=303)
+
+
+@app.post("/ui/transacoes/{transacao_id}/excluir-serie")
+def form_excluir_serie_transacao(
+    transacao_id: int,
+    voltar_ano: int = Form(...),
+    voltar_mes: int = Form(...),
+    db: Session = Depends(get_db),
+):
+    crud.excluir_serie_transacao(db, transacao_id)
     return RedirectResponse(url=f"/dashboard/{voltar_ano}/{voltar_mes}", status_code=303)
 
 

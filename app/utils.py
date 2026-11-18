@@ -1,3 +1,4 @@
+from calendar import monthrange
 from datetime import date
 
 MESES_PT = [
@@ -29,3 +30,15 @@ def mes_seguinte(ano: int, mes: int) -> tuple[int, int]:
 def mes_atual() -> tuple[int, int]:
     hoje = date.today()
     return hoje.year, hoje.month
+
+
+def somar_meses(d: date, n: int) -> date:
+    """Soma n meses a uma data, mantendo o dia quando possível — e, quando
+    o mês de destino não tem esse dia (ex: dia 31 indo pra fevereiro),
+    usa o último dia válido daquele mês. Usado para gerar as parcelas de
+    uma compra parcelada, uma por mês, a partir da data do lançamento."""
+    mes_total = d.month - 1 + n
+    ano = d.year + mes_total // 12
+    mes = mes_total % 12 + 1
+    dia = min(d.day, monthrange(ano, mes)[1])
+    return date(ano, mes, dia)
